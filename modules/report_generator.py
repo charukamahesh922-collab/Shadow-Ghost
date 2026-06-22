@@ -39,6 +39,7 @@ class ReportGenerator:
         .badge-success {{ background: #003300; color: #00ff00; }}
         .badge-danger {{ background: #330000; color: #ff0000; }}
         .badge-warning {{ background: #332200; color: #ffcc00; }}
+        .badge-info {{ background: #002233; color: #00ccff; }}
     </style>
 </head>
 <body>
@@ -60,6 +61,7 @@ class ReportGenerator:
                 <tr><td>Subdomains Discovered:</td><td><span class="badge badge-success">{len(data.get('subdomains', []))}</span></td></tr>
                 <tr><td>Technologies Detected:</td><td><span class="badge badge-success">{len(data.get('technologies', []))}</span></td></tr>
                 <tr><td>Directories Found:</td><td><span class="badge badge-success">{len(data.get('directories', []))}</span></td></tr>
+                <tr><td>WAF Detected:</td><td><span class="badge badge-{'danger' if data.get('waf', {}).get('waf_present', False) else 'success'}">{'Yes' if data.get('waf', {}).get('waf_present', False) else 'No'}</span></td></tr>
             </table>
         </div>
         
@@ -92,6 +94,21 @@ class ReportGenerator:
         </div>
         
         <div class="section">
+            <h2>🔒 SSL/TLS Scan Results</h2>
+            {self._generate_ssl_html(data.get('ssl_scan', {}))}
+        </div>
+        
+        <div class="section">
+            <h2>☁️ Cloud Services</h2>
+            {self._generate_cloud_html(data.get('cloud_services', {}))}
+        </div>
+        
+        <div class="section">
+            <h2>🛡️ WAF Detection</h2>
+            {self._generate_waf_html(data.get('waf', {}))}
+        </div>
+        
+        <div class="section">
             <h2>🏢 Hosting Information</h2>
             <p><strong>IP:</strong> {data.get('hosting_info', {}).get('ip', 'Unknown')}</p>
             <p><strong>Provider:</strong> {data.get('hosting_info', {}).get('hosting_provider', 'Unknown')}</p>
@@ -119,6 +136,59 @@ class ReportGenerator:
             f.write(html)
         print(f"[+] HTML report saved: {filename}")
     
+    def _generate_ssl_html(self, ssl_data):
+        """Generate SSL section for HTML report"""
+        if not ssl_data:
+            return "<p>No SSL/TLS data available.</p>"
+        
+        html = "<table><tr><th>Property</th><th>Value</th></tr>"
+        cert = ssl_data.get('certificate', {})
+        if cert and 'error' not in cert:
+            html += f"<tr><td>Subject</td><td>{cert.get('subject', {}).get('commonName', 'Unknown')}</td></tr>"
+            html += f"<tr><td>Issuer</td><td>{cert.get('issuer', {}).get('organizationName', 'Unknown')}</td></tr>"
+            html += f"<tr><td>Valid From</td><td>{cert.get('not_before', 'Unknown')}</td></tr>"
+            html += f"<tr><td>Valid Until</td><td>{cert.get('not_after', 'Unknown')}</td></tr>"
+            html += f"<tr><td>Serial Number</td><td>{cert.get('serial_number', 'Unknown')}</td></tr>"
+        else:
+            html += "<tr><td colspan='2'>No SSL certificate found</td></tr>"
+        
+        vulns = ssl_data.get('vulnerabilities', [])
+        if vulns:
+            html += "<tr><td colspan='2' style='color:#ff0000;'><strong>Vulnerabilities:</strong></td></tr>"
+            for vuln in vulns:
+                html += f"<tr><td colspan='2'>- {vuln.get('protocol', 'Unknown')}: {vuln.get('description', '')}</td></tr>"
+        
+        html += "</table>"
+        return html
+    
+    def _generate_cloud_html(self, cloud_data):
+        """Generate Cloud section for HTML report"""
+        if not cloud_data:
+            return "<p>No cloud service data available.</p>"
+        
+        html = "<table><tr><th>Service</th><th>Provider</th></tr>"
+        html += f"<tr><td>Cloud Provider</td><td>{cloud_data.get('cloud_provider', 'Unknown')}</td></tr>"
+        html += f"<tr><td>CDN Provider</td><td>{cloud_data.get('cdn_provider', 'Unknown')}</td></tr>"
+        html += f"<tr><td>DNS Provider</td><td>{cloud_data.get('dns_provider', 'Unknown')}</td></tr>"
+        html += f"<tr><td>Email Provider</td><td>{cloud_data.get('email_provider', 'Unknown')}</td></tr>"
+        html += "</table>"
+        
+        saas = cloud_data.get('saas_services', [])
+        if saas:
+            html += "<p><strong>SaaS Services:</strong> " + ", ".join(saas) + "</p>"
+        
+        return html
+    
+    def _generate_waf_html(self, waf_data):
+        """Generate WAF section for HTML report"""
+        if not waf_data:
+            return "<p>No WAF data available.</p>"
+        
+        if waf_data.get('waf_present', False):
+            return f"<p><span class='badge badge-danger'>WAF Detected</span> - Provider: {waf_data.get('waf_provider', 'Unknown')}</p>"
+        else:
+            return "<p><span class='badge badge-success'>No WAF Detected</span></p>"
+    
     def generate_markdown(self, data, filename):
         """Generate Markdown report"""
         md = f"""# 👻 ShadowGhost Reconnaissance Report
@@ -136,6 +206,7 @@ class ReportGenerator:
 - **Subdomains:** {len(data.get('subdomains', []))}
 - **Technologies:** {len(data.get('technologies', []))}
 - **Directories:** {len(data.get('directories', []))}
+- **WAF Detected:** {'Yes' if data.get('waf', {}).get('waf_present', False) else 'No'}
 
 ## Open Ports
 | Port | Service | Banner |
@@ -164,6 +235,38 @@ class ReportGenerator:
         else:
             md += "✅ No vulnerabilities found.\n"
         
+        md += "\n## SSL/TLS Scan Results\n"
+        ssl = data.get('ssl_scan', {})
+        cert = ssl.get('certificate', {})
+        if cert and 'error' not in cert:
+            md += f"- **Subject:** {cert.get('subject', {}).get('commonName', 'Unknown')}\n"
+            md += f"- **Issuer:** {cert.get('issuer', {}).get('organizationName', 'Unknown')}\n"
+            md += f"- **Valid From:** {cert.get('not_before', 'Unknown')}\n"
+            md += f"- **Valid Until:** {cert.get('not_after', 'Unknown')}\n"
+            vulns = ssl.get('vulnerabilities', [])
+            if vulns:
+                md += "- **Vulnerabilities:**\n"
+                for vuln in vulns:
+                    md += f"  - {vuln.get('protocol', 'Unknown')}: {vuln.get('description', '')}\n"
+        else:
+            md += "No SSL certificate found.\n"
+        
+        md += "\n## Cloud Services\n"
+        cloud = data.get('cloud_services', {})
+        md += f"- **Cloud Provider:** {cloud.get('cloud_provider', 'Unknown')}\n"
+        md += f"- **CDN Provider:** {cloud.get('cdn_provider', 'Unknown')}\n"
+        md += f"- **DNS Provider:** {cloud.get('dns_provider', 'Unknown')}\n"
+        md += f"- **Email Provider:** {cloud.get('email_provider', 'Unknown')}\n"
+        if cloud.get('saas_services'):
+            md += f"- **SaaS Services:** {', '.join(cloud['saas_services'])}\n"
+        
+        md += "\n## WAF Detection\n"
+        waf = data.get('waf', {})
+        if waf.get('waf_present', False):
+            md += f"**WAF Detected:** {waf.get('waf_provider', 'Unknown')}\n"
+        else:
+            md += "**No WAF Detected**\n"
+        
         md += "\n## Hosting Information\n"
         hosting = data.get('hosting_info', {})
         md += f"- **IP:** {hosting.get('ip', 'Unknown')}\n"
@@ -174,6 +277,16 @@ class ReportGenerator:
         md += "\n## Discovered Directories\n"
         for dir_info in data.get('directories', []):
             md += f"- {dir_info.get('path', '')} (Status: {dir_info.get('status', 'Unknown')})\n"
+        
+        if data.get('emails'):
+            md += "\n## Emails Found\n"
+            for email in data.get('emails', []):
+                md += f"- {email}\n"
+        
+        if data.get('sensitive_files'):
+            md += "\n## Sensitive Files Found\n"
+            for file_info in data.get('sensitive_files', []):
+                md += f"- {file_info.get('file', 'Unknown')}: {file_info.get('url', 'N/A')}\n"
         
         md += f"""
 ---
@@ -214,6 +327,7 @@ Technologies: {len(data.get('technologies', []))}
 Directories: {len(data.get('directories', []))}
 Emails Found: {len(data.get('emails', []))}
 Links Found: {len(data.get('links', []))}
+WAF Detected: {'Yes' if data.get('waf', {}).get('waf_present', False) else 'No'}
 
 OPEN PORTS
 ----------
@@ -242,6 +356,47 @@ TECHNOLOGIES
                 txt += f"  {tech.get('name', 'Unknown')}: {tech.get('version', 'Unknown')}\n"
             else:
                 txt += f"  {tech}\n"
+        
+        txt += """
+SSL/TLS SCAN RESULTS
+-------------------
+"""
+        ssl = data.get('ssl_scan', {})
+        cert = ssl.get('certificate', {})
+        if cert and 'error' not in cert:
+            txt += f"  Subject: {cert.get('subject', {}).get('commonName', 'Unknown')}\n"
+            txt += f"  Issuer: {cert.get('issuer', {}).get('organizationName', 'Unknown')}\n"
+            txt += f"  Valid From: {cert.get('not_before', 'Unknown')}\n"
+            txt += f"  Valid Until: {cert.get('not_after', 'Unknown')}\n"
+            vulns = ssl.get('vulnerabilities', [])
+            if vulns:
+                txt += "  Vulnerabilities:\n"
+                for vuln in vulns:
+                    txt += f"    - {vuln.get('protocol', 'Unknown')}: {vuln.get('description', '')}\n"
+        else:
+            txt += "  No SSL certificate found.\n"
+        
+        txt += """
+CLOUD SERVICES
+-------------
+"""
+        cloud = data.get('cloud_services', {})
+        txt += f"  Cloud Provider: {cloud.get('cloud_provider', 'Unknown')}\n"
+        txt += f"  CDN Provider: {cloud.get('cdn_provider', 'Unknown')}\n"
+        txt += f"  DNS Provider: {cloud.get('dns_provider', 'Unknown')}\n"
+        txt += f"  Email Provider: {cloud.get('email_provider', 'Unknown')}\n"
+        if cloud.get('saas_services'):
+            txt += f"  SaaS Services: {', '.join(cloud['saas_services'])}\n"
+        
+        txt += """
+WAF DETECTION
+------------
+"""
+        waf = data.get('waf', {})
+        if waf.get('waf_present', False):
+            txt += f"  WAF Detected: {waf.get('waf_provider', 'Unknown')}\n"
+        else:
+            txt += "  No WAF Detected\n"
         
         txt += """
 DNS RECORDS
