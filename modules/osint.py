@@ -1,4 +1,4 @@
-cat > modules/osint.py << 'EOF'
+
 #!/usr/bin/env python3
 """
 OSINT Gathering Module - ShadowGhost
@@ -105,4 +105,4 @@ class OSINTGatherer:
             print("[+] Security headers checked")
         except:
             self.results['security_headers'] = {'error': 'Could not retrieve headers'}
-EOF
+
