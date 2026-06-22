@@ -436,6 +436,10 @@ class ShadowGhost:
             
             duration = (datetime.now() - self.start_time).total_seconds()
             self.results['scan_duration'] = duration
+            
+            # Display gathered data
+            self._display_results()
+            
             self._generate_reports()
             
             print(f"\n{Fore.GREEN}[+] ✅ Scan completed in {duration:.2f} seconds!")
@@ -447,6 +451,101 @@ class ShadowGhost:
         except Exception as e:
             self.logger.error(f"Scan failed: {str(e)}")
             sys.exit(1)
+    
+    def _display_results(self):
+        """Display all gathered data in a nice format"""
+        print(f"\n{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}📊 SHADOWGHOST RECONNAISSANCE RESULTS{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}\n")
+        
+        # Target Info
+        print(f"{Fore.GREEN}[+] TARGET INFORMATION{Style.RESET_ALL}")
+        print(f"    Target: {self.target}")
+        print(f"    Domain: {self.domain}")
+        print(f"    Scan Type: {self.scan_type.upper()}")
+        print(f"    Duration: {self.results['scan_duration']:.2f} seconds\n")
+        
+        # Executive Summary
+        print(f"{Fore.GREEN}[+] EXECUTIVE SUMMARY{Style.RESET_ALL}")
+        print(f"    {'Vulnerabilities Found:':<30} {Fore.RED}{len(self.results.get('vulnerabilities', []))}{Style.RESET_ALL}")
+        print(f"    {'Open Ports:':<30} {Fore.GREEN}{len(self.results.get('open_ports', {}))}{Style.RESET_ALL}")
+        print(f"    {'Subdomains:':<30} {Fore.GREEN}{len(self.results.get('subdomains', []))}{Style.RESET_ALL}")
+        print(f"    {'Technologies:':<30} {Fore.GREEN}{len(self.results.get('technologies', []))}{Style.RESET_ALL}")
+        print(f"    {'Directories:':<30} {Fore.GREEN}{len(self.results.get('directories', []))}{Style.RESET_ALL}")
+        print(f"    {'Emails Found:':<30} {Fore.GREEN}{len(self.results.get('emails', []))}{Style.RESET_ALL}")
+        print(f"    {'Links Found:':<30} {Fore.GREEN}{len(self.results.get('links', []))}{Style.RESET_ALL}\n")
+        
+        # Open Ports
+        if self.results.get('open_ports'):
+            print(f"{Fore.GREEN}[+] OPEN PORTS{Style.RESET_ALL}")
+            for port, info in self.results['open_ports'].items():
+                print(f"    {Fore.YELLOW}{port}{Style.RESET_ALL}: {info.get('service', 'Unknown')} - {info.get('banner', 'N/A')[:50]}")
+            print()
+        
+        # Vulnerabilities
+        if self.results.get('vulnerabilities'):
+            print(f"{Fore.RED}[!] VULNERABILITIES FOUND{Style.RESET_ALL}")
+            for vuln in self.results['vulnerabilities']:
+                print(f"    {Fore.RED}[{vuln.get('type', 'Unknown')}]{Style.RESET_ALL}")
+                print(f"      URL: {vuln.get('url', 'N/A')}")
+                if vuln.get('payload'):
+                    print(f"      Payload: {vuln.get('payload', 'N/A')}")
+                if vuln.get('evidence'):
+                    print(f"      Evidence: {vuln.get('evidence', 'N/A')}")
+            print()
+        else:
+            print(f"{Fore.GREEN}[+] No vulnerabilities found.{Style.RESET_ALL}\n")
+        
+        # Technologies
+        if self.results.get('technologies'):
+            print(f"{Fore.GREEN}[+] TECHNOLOGIES DETECTED{Style.RESET_ALL}")
+            for tech in self.results['technologies']:
+                if isinstance(tech, dict):
+                    print(f"    {tech.get('name', 'Unknown')}: {tech.get('version', 'Unknown')}")
+                else:
+                    print(f"    {tech}")
+            print()
+        
+        # Hosting Info
+        if self.results.get('hosting_info'):
+            print(f"{Fore.GREEN}[+] HOSTING INFORMATION{Style.RESET_ALL}")
+            hosting = self.results['hosting_info']
+            print(f"    IP: {hosting.get('ip', 'Unknown')}")
+            print(f"    Provider: {hosting.get('hosting_provider', 'Unknown')}")
+            print(f"    CDN: {hosting.get('cdn', 'Unknown')}")
+            print(f"    Server Type: {hosting.get('server_type', 'Unknown')}")
+            print()
+        
+        # Subdomains
+        if self.results.get('subdomains'):
+            print(f"{Fore.GREEN}[+] SUBDOMAINS FOUND{Style.RESET_ALL}")
+            for sub in self.results['subdomains']:
+                print(f"    {sub}")
+            print()
+        
+        # Emails
+        if self.results.get('emails'):
+            print(f"{Fore.GREEN}[+] EMAILS FOUND{Style.RESET_ALL}")
+            for email in self.results['emails']:
+                print(f"    {email}")
+            print()
+        
+        # Sensitive Files (Aggressive mode)
+        if self.results.get('sensitive_files'):
+            print(f"{Fore.RED}[!] SENSITIVE FILES FOUND{Style.RESET_ALL}")
+            for file_info in self.results['sensitive_files']:
+                print(f"    {file_info.get('file', 'Unknown')}: {file_info.get('url', 'N/A')}")
+            print()
+        
+        # DNS Records
+        if self.results.get('dns_records'):
+            print(f"{Fore.GREEN}[+] DNS RECORDS{Style.RESET_ALL}")
+            for rtype, values in self.results['dns_records'].get('records', {}).items():
+                if values:
+                    print(f"    {rtype}: {', '.join(values[:3])}")
+            print()
+        
+        print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
     
     def _phase_dns_recon(self):
         print(f"{Fore.CYAN}[+] 🌐 Phase 1: DNS Reconnaissance")
