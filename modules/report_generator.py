@@ -1,28 +1,29 @@
+
 #!/usr/bin/env python3
 """
-Report Generator Module
-Generate comprehensive HTML and Markdown reports
+Report Generator Module - ShadowGhost
+Generate comprehensive HTML, JSON, and Markdown reports
 """
 
 import json
 from datetime import datetime
 
 class ReportGenerator:
-    """Generate detailed reconnaissance reports"""
+    """Generate comprehensive reconnaissance reports"""
     
     def generate_html(self, data, filename):
         """Generate HTML report"""
         html = f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>ShadowGhost Report - {data['domain']}</title>
+    <title>ShadowGhost Report - {data.get('domain', 'Unknown')}</title>
     <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; background: #0a0a0a; color: #00ff00; }}
+        body {{ font-family: 'Courier New', monospace; margin: 20px; background: #0a0a0a; color: #00ff00; }}
         .container {{ max-width: 1200px; margin: 0 auto; }}
-        .header {{ background: linear-gradient(135deg, #1a1a1a, #000000); padding: 20px; border: 1px solid #00ff00; }}
-        .section {{ background: #1a1a1a; margin: 20px 0; padding: 20px; border: 1px solid #003300; }}
-        .vulnerability {{ background: #330000; border: 1px solid #ff0000; padding: 10px; margin: 10px 0; }}
-        .finding {{ background: #001a00; border: 1px solid #00ff00; padding: 10px; margin: 10px 0; }}
+        .header {{ background: linear-gradient(135deg, #1a1a1a, #000000); padding: 20px; border: 1px solid #00ff00; border-radius: 10px; }}
+        .section {{ background: #1a1a1a; margin: 20px 0; padding: 20px; border: 1px solid #003300; border-radius: 10px; }}
+        .vulnerability {{ background: #330000; border: 1px solid #ff0000; padding: 10px; margin: 10px 0; border-radius: 5px; }}
+        .finding {{ background: #001a00; border: 1px solid #00ff00; padding: 10px; margin: 10px 0; border-radius: 5px; }}
         .critical {{ color: #ff0000; }}
         .high {{ color: #ff6600; }}
         .medium {{ color: #ffcc00; }}
@@ -30,31 +31,51 @@ class ReportGenerator:
         table {{ width: 100%; border-collapse: collapse; }}
         th, td {{ border: 1px solid #003300; padding: 8px; text-align: left; }}
         th {{ background: #002200; }}
+        .port-open {{ color: #00ff00; }}
+        .port-closed {{ color: #ff0000; }}
+        h1, h2, h3 {{ color: #00ff00; }}
+        a {{ color: #00ff00; }}
+        .footer {{ margin-top: 40px; padding: 20px; background: #1a1a1a; border: 1px solid #003300; border-radius: 10px; text-align: center; }}
+        .badge {{ display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 12px; }}
+        .badge-success {{ background: #003300; color: #00ff00; }}
+        .badge-danger {{ background: #330000; color: #ff0000; }}
+        .badge-warning {{ background: #332200; color: #ffcc00; }}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>👻 ShadowGhost Reconnaissance Report</h1>
-            <p><strong>Target:</strong> {data['target']}</p>
-            <p><strong>Domain:</strong> {data['domain']}</p>
-            <p><strong>Scan Date:</strong> {data['timestamp']}</p>
+            <p><strong>Target:</strong> {data.get('target', 'Unknown')}</p>
+            <p><strong>Domain:</strong> {data.get('domain', 'Unknown')}</p>
+            <p><strong>Scan Date:</strong> {data.get('timestamp', 'Unknown')}</p>
             <p><strong>Duration:</strong> {data.get('scan_duration', 0):.2f} seconds</p>
         </div>
         
         <div class="section">
             <h2>🎯 Executive Summary</h2>
-            <p>Total Vulnerabilities Found: {len(data.get('vulnerabilities', []))}</p>
-            <p>Open Ports: {len(data.get('open_ports', {}))}</p>
-            <p>Subdomains Discovered: {len(data.get('subdomains', []))}</p>
-            <p>Technologies Detected: {len(data.get('technologies', []))}</p>
+            <table>
+                <tr><td>Total Vulnerabilities Found:</td><td><span class="badge badge-danger">{len(data.get('vulnerabilities', []))}</span></td></tr>
+                <tr><td>Open Ports:</td><td><span class="badge badge-success">{len(data.get('open_ports', {}))}</span></td></tr>
+                <tr><td>Subdomains Discovered:</td><td><span class="badge badge-success">{len(data.get('subdomains', []))}</span></td></tr>
+                <tr><td>Technologies Detected:</td><td><span class="badge badge-success">{len(data.get('technologies', []))}</span></td></tr>
+                <tr><td>Directories Found:</td><td><span class="badge badge-success">{len(data.get('directories', []))}</span></td></tr>
+            </table>
         </div>
         
         <div class="section">
             <h2>🔌 Open Ports</h2>
             <table>
                 <tr><th>Port</th><th>Service</th><th>Banner</th></tr>
-                {''.join(f"<tr><td>{port}</td><td>{info.get('service', 'Unknown')}</td><td>{info.get('banner', 'N/A')}</td></tr>" for port, info in data.get('open_ports', {}).items())}
+                {''.join(f"<tr><td class='port-open'>{port}</td><td>{info.get('service', 'Unknown')}</td><td>{info.get('banner', 'N/A')[:100]}</td></tr>" for port, info in data.get('open_ports', {}).items())}
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>🌐 DNS Records</h2>
+            <table>
+                <tr><th>Record Type</th><th>Values</th></tr>
+                {''.join(f"<tr><td>{rtype}</td><td>{', '.join(values[:5])}{'...' if len(values) > 5 else ''}</td></tr>" for rtype, values in data.get('dns_records', {}).get('records', {}).items() if values)}
             </table>
         </div>
         
@@ -67,7 +88,7 @@ class ReportGenerator:
         
         <div class="section">
             <h2>⚠️ Vulnerabilities</h2>
-            {''.join(f"<div class='vulnerability'><strong>{vuln.get('type', 'Unknown')}</strong><br><span class='critical'>URL: {vuln.get('url', 'N/A')}</span><br>Payload: {vuln.get('payload', 'N/A')}<br>Evidence: {vuln.get('evidence', 'N/A')}</div>" for vuln in data.get('vulnerabilities', []))}
+            {''.join(f"<div class='vulnerability'><strong>{vuln.get('type', 'Unknown')}</strong><br><span class='critical'>URL: {vuln.get('url', 'N/A')}</span><br>Payload: {vuln.get('payload', 'N/A')}<br>Evidence: {vuln.get('evidence', 'N/A')}</div>" for vuln in data.get('vulnerabilities', [])) if data.get('vulnerabilities') else "<p>No vulnerabilities found.</p>"}
         </div>
         
         <div class="section">
@@ -80,13 +101,14 @@ class ReportGenerator:
         
         <div class="section">
             <h2>📂 Discovered Directories</h2>
-            <ul>
-                {''.join(f"<li>{dir_info.get('path', '')} (Status: {dir_info.get('status', 'Unknown')})</li>" for dir_info in data.get('directories', []))}
-            </ul>
+            <table>
+                <tr><th>Path</th><th>Status</th><th>Size</th></tr>
+                {''.join(f"<tr><td>{dir_info.get('path', '')}</td><td>{dir_info.get('status', 'Unknown')}</td><td>{dir_info.get('size', 'Unknown')}</td></tr>" for dir_info in data.get('directories', []))}
+            </table>
         </div>
         
-        <div class="footer" style="margin-top: 40px; padding: 20px; background: #1a1a1a; border: 1px solid #003300;">
-            <p style="color: #666;">Report generated by ShadowGhost v1.0</p>
+        <div class="footer">
+            <p>Report generated by ShadowGhost v1.0</p>
             <p style="color: #666; font-size: 12px;">For educational and authorized testing purposes only</p>
         </div>
     </div>
@@ -95,3 +117,75 @@ class ReportGenerator:
         
         with open(filename, 'w') as f:
             f.write(html)
+        print(f"[+] HTML report saved: {filename}")
+    
+    def generate_markdown(self, data, filename):
+        """Generate Markdown report"""
+        md = f"""# 👻 ShadowGhost Reconnaissance Report
+
+## Target Information
+- **Target:** {data.get('target', 'Unknown')}
+- **Domain:** {data.get('domain', 'Unknown')}
+- **Scan Date:** {data.get('timestamp', 'Unknown')}
+- **Duration:** {data.get('scan_duration', 0):.2f} seconds
+
+## Executive Summary
+- **Vulnerabilities:** {len(data.get('vulnerabilities', []))}
+- **Open Ports:** {len(data.get('open_ports', {}))}
+- **Subdomains:** {len(data.get('subdomains', []))}
+- **Technologies:** {len(data.get('technologies', []))}
+- **Directories:** {len(data.get('directories', []))}
+
+## Open Ports
+| Port | Service | Banner |
+|------|---------|--------|
+"""
+        for port, info in data.get('open_ports', {}).items():
+            md += f"| {port} | {info.get('service', 'Unknown')} | {info.get('banner', 'N/A')[:50]} |\n"
+        
+        md += "\n## DNS Records\n"
+        for rtype, values in data.get('dns_records', {}).get('records', {}).items():
+            if values:
+                md += f"- **{rtype}:** {', '.join(values[:3])}\n"
+        
+        md += "\n## Technologies Detected\n"
+        for tech in data.get('technologies', []):
+            md += f"- {tech}\n"
+        
+        md += "\n## Vulnerabilities Found\n"
+        if data.get('vulnerabilities'):
+            for vuln in data.get('vulnerabilities', []):
+                md += f"""### {vuln.get('type', 'Unknown')}
+- **URL:** {vuln.get('url', 'N/A')}
+- **Payload:** {vuln.get('payload', 'N/A')}
+- **Evidence:** {vuln.get('evidence', 'N/A')}
+"""
+        else:
+            md += "✅ No vulnerabilities found.\n"
+        
+        md += "\n## Hosting Information\n"
+        hosting = data.get('hosting_info', {})
+        md += f"- **IP:** {hosting.get('ip', 'Unknown')}\n"
+        md += f"- **Provider:** {hosting.get('hosting_provider', 'Unknown')}\n"
+        md += f"- **CDN:** {hosting.get('cdn', 'Unknown')}\n"
+        md += f"- **Server Type:** {hosting.get('server_type', 'Unknown')}\n"
+        
+        md += "\n## Discovered Directories\n"
+        for dir_info in data.get('directories', []):
+            md += f"- {dir_info.get('path', '')} (Status: {dir_info.get('status', 'Unknown')})\n"
+        
+        md += f"""
+---
+*Report generated by ShadowGhost v1.0*
+*For educational and authorized testing purposes only*
+"""
+        
+        with open(filename, 'w') as f:
+            f.write(md)
+        print(f"[+] Markdown report saved: {filename}")
+    
+    def generate_json(self, data, filename):
+        """Generate JSON report"""
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=2, default=str)
+        print(f"[+] JSON report saved: {filename}")
