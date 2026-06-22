@@ -1,27 +1,27 @@
 #!/bin/bash
-# ShadowGhost Installation Script
+# ShadowGhost Installation
 
 echo "👻 Installing ShadowGhost..."
 echo "=============================="
 
-# Check Python version
-python3 -c "import sys; exit(0) if sys.version_info >= (3,8) else exit(1)"
-if [ $? -ne 0 ]; then
-    echo "❌ Python 3.8+ is required"
-    exit 1
+# Create virtual environment
+if [ ! -d "shadowghost-env" ]; then
+    echo "📦 Creating virtual environment..."
+    python3 -m venv shadowghost-env
 fi
 
-# Install dependencies
+# Activate and install dependencies
 echo "📦 Installing dependencies..."
-pip3 install -r requirements.txt
+source shadowghost-env/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+deactivate
 
 # Create directories
-mkdir -p wordlists
-mkdir -p reports
-mkdir -p config
+mkdir -p config wordlists reports
 
 # Create default wordlists
-cat > wordlists/directories.txt << EOF
+cat > wordlists/directories.txt << 'EOF'
 admin
 login
 wp-admin
@@ -67,7 +67,7 @@ vendor
 node_modules
 EOF
 
-cat > wordlists/subdomains.txt << EOF
+cat > wordlists/subdomains.txt << 'EOF'
 www
 mail
 ftp
@@ -125,8 +125,19 @@ staging
 test
 EOF
 
+# Install global runner
+sudo cp runner.sh /usr/local/bin/shadowghost
+sudo chmod +x /usr/local/bin/shadowghost
+
+sudo cp update.sh /usr/local/bin/shadowghost-update
+sudo chmod +x /usr/local/bin/shadowghost-update
+
+echo ""
 echo "✅ Installation complete!"
 echo ""
-echo "Usage: python3 shadowghost.py -t example.com"
+echo "Usage:"
+echo "  shadowghost -t example.com     # Run the tool"
+echo "  shadowghost --no-update        # Run without checking updates"
+echo "  shadowghost-update             # Manually check for updates"
 echo ""
-echo "For help: python3 shadowghost.py -h"
+echo "For help: shadowghost -h"
