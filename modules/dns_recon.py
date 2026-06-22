@@ -1,4 +1,4 @@
-cat > modules/dns_recon.py << 'EOF'
+
 #!/usr/bin/env python3
 """
 DNS Reconnaissance Module - ShadowGhost
@@ -95,4 +95,4 @@ class DNSRecon:
         except Exception as e:
             print(f"[-] WHOIS lookup failed: {e}")
             self.results['whois'] = {}
-EOF
+
