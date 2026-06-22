@@ -18,6 +18,111 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 from colorama import init, Fore, Style
 
+# ============================================
+# AUTO-UPDATE SYSTEM - Runs before anything else
+# ============================================
+
+def auto_update():
+    """Automatically check and apply updates from GitHub"""
+    try:
+        # Check if we should skip update
+        if '--no-update' in sys.argv or '-nu' in sys.argv:
+            return
+        
+        print(f"{Fore.CYAN}[*] 🔄 Checking for updates...{Style.RESET_ALL}")
+        
+        # Get the script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(script_dir)
+        
+        # Check if git is available
+        try:
+            subprocess.run(['git', '--version'], capture_output=True, check=True)
+        except:
+            print(f"{Fore.YELLOW}[!] Git not found. Skipping auto-update.{Style.RESET_ALL}")
+            return
+        
+        # Check if this is a git repository
+        if not os.path.exists(os.path.join(script_dir, '.git')):
+            print(f"{Fore.YELLOW}[!] Not a git repository. Initializing...{Style.RESET_ALL}")
+            subprocess.run(['git', 'init'], capture_output=True)
+            subprocess.run(['git', 'remote', 'add', 'origin', 'https://github.com/charukamahesh922-collab/Shadow-Ghost.git'], capture_output=True)
+        
+        # Fetch latest changes
+        subprocess.run(['git', 'fetch', 'origin'], capture_output=True)
+        
+        # Get current and latest commit
+        current = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
+        latest = subprocess.run(['git', 'rev-parse', 'origin/main'], capture_output=True, text=True).stdout.strip()
+        
+        # If no origin/main, try origin/master
+        if not latest:
+            latest = subprocess.run(['git', 'rev-parse', 'origin/master'], capture_output=True, text=True).stdout.strip()
+        
+        # Check if update is available
+        if current and latest and current != latest:
+            print(f"{Fore.YELLOW}[!] ⬆️  Updates available!{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}[*] Current: {current[:8]}{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}[*] Latest:  {latest[:8]}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}[*] 🔄 Auto-updating...{Style.RESET_ALL}")
+            
+            # Backup config files
+            if os.path.exists('config/default.conf'):
+                subprocess.run(['cp', 'config/default.conf', '/tmp/shadowghost_config.conf'])
+            
+            # Backup custom wordlists
+            if os.path.exists('wordlists/custom.txt'):
+                subprocess.run(['cp', 'wordlists/custom.txt', '/tmp/shadowghost_custom.txt'])
+            
+            # Pull latest changes
+            result = subprocess.run(['git', 'pull', 'origin', 'main'], capture_output=True, text=True)
+            if result.returncode != 0:
+                # Try master branch
+                result = subprocess.run(['git', 'pull', 'origin', 'master'], capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                # Restore config files
+                if os.path.exists('/tmp/shadowghost_config.conf'):
+                    os.makedirs('config', exist_ok=True)
+                    subprocess.run(['cp', '/tmp/shadowghost_config.conf', 'config/default.conf'])
+                    os.remove('/tmp/shadowghost_config.conf')
+                
+                if os.path.exists('/tmp/shadowghost_custom.txt'):
+                    os.makedirs('wordlists', exist_ok=True)
+                    subprocess.run(['cp', '/tmp/shadowghost_custom.txt', 'wordlists/custom.txt'])
+                    os.remove('/tmp/shadowghost_custom.txt')
+                
+                # Update dependencies
+                if os.path.exists('requirements.txt'):
+                    try:
+                        subprocess.run(['pip', 'install', '-r', 'requirements.txt', '--upgrade'], capture_output=True)
+                    except:
+                        pass
+                
+                print(f"{Fore.GREEN}[✓] ✅ Update completed successfully!{Style.RESET_ALL}")
+                print(f"{Fore.GREEN}[✓] 🔄 Restarting with new version...{Style.RESET_ALL}")
+                print()
+                
+                # Restart the script with the same arguments
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+            else:
+                print(f"{Fore.RED}[X] ❌ Update failed. Continuing with current version.{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.GREEN}[✓] ✅ Already up to date!{Style.RESET_ALL}")
+    
+    except Exception as e:
+        print(f"{Fore.RED}[X] Auto-update error: {str(e)}{Style.RESET_ALL}")
+
+# ============================================
+# RUN AUTO-UPDATE
+# ============================================
+
+auto_update()
+
+# ============================================
+# MAIN TOOL
+# ============================================
+
 # Import modules
 from modules.dns_recon import DNSRecon
 from modules.port_scanner import PortScanner
@@ -30,19 +135,6 @@ from utils.logger import Logger
 from utils.color import Colors
 
 init(autoreset=True)
-
-# Check for updates
-def check_updates():
-    """Check for updates silently"""
-    try:
-        update_script = os.path.join(os.path.dirname(__file__), "update.sh")
-        if os.path.exists(update_script) and '--no-update' not in sys.argv and '-nu' not in sys.argv:
-            subprocess.run(['bash', update_script, '--silent-check'], 
-                         capture_output=True, timeout=5)
-    except:
-        pass
-
-check_updates()
 
 class ShadowGhost:
     """Main reconnaissance engine"""
