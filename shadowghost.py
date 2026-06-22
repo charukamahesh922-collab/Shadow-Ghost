@@ -113,6 +113,9 @@ from modules.hosting_detector import HostingDetector
 from modules.osint import OSINTGatherer
 from modules.vulnerability_scanner import VulnerabilityScanner
 from modules.report_generator import ReportGenerator
+from modules.ssl_scanner import SSLScanner
+from modules.cloud_scanner import CloudScanner
+from modules.waf_detector import WAFDetector
 from utils.logger import Logger
 from utils.color import Colors
 
@@ -236,6 +239,157 @@ def check_common_vulnerabilities(url):
     return vulnerabilities
 
 # ============================================
+# HELP MENU
+# ============================================
+
+def show_help():
+    """Display the help menu"""
+    banner = f"""
+{Fore.RED}@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*.-%@@@@@@@@@@=.=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#:@@@...-@@%=-.#..=#@@+. .#@@++@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@*@@@@@@@@@@@@@@@@@@@@@@@@:@@:.+@..%@%@@@@*@=%@*@*@@@@#@+.*%..@@.@@@@@@@@@@@@@@@@@@@@@@@@=@@@@@@
+@@@@@@@%:@@@@@@@@@@@@@@@@@@-@:.@.+@@@@@@%%@%@@@%.....@@@%=#@@@@@@@.@..@%@@@@@@@@@@@@@@@@@@.+*@@@@@@@
+@@@@@@@@-+.-@@@@@@@@@@@@:@.:#:@%.=@*@+@@@@*@+@@:+@-@@@*@@@%@@@@@@@:.@@:*.@#@@@@@@@@@@@@@.-%@@@@@@@@@
+@@@@@@@@@#*-::@@@@@@@%@*.@:@@@:.%@.@@@-@=##@@@*=#@@=*@@@%#=*@@@%@.@.@@*@@-:.@.@@@@@@@%::+@@@@@@@@@@@
+@@@@@@@@@@@@*=+:.:=.@:-:=@@@@@@@#.#@*@..@+..=@@@@@@@@@+..-@-.%@@##.@*@*@@@@:::...:..-==%-@@@@@@@@@@@
+@@@@@@@@@@@@*@%#=+#*#--:..:..%.::@.@.+@@@@@+@@@@%@@@@@@@@@@@@#.%.@=:..*....::=--=*@@@@%@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@=@@@@%@@@+*-=.=.::..:+@@@@@@@@=*@@@@@#=#@@@@@@@@::.--:=-::+@+#+@@@@@*@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@:@.@@@*+@@@%#*##+:-.:+-+*@@@@@@@@::@.:.=@+@@@@@==:-.:-=+@@@%@@@@-@@@+-@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@:#.@%@@@@-@@#%@@%=@%::=:+:**@@#@.@@@@@@@@@@@::.#:-::=%%%@@+%@@.@@@+%@*.@.@@@@@@@@@@@@@
+@@@@@@@@@@@-@.%@@@#@+@@.%.%@@@@%@@*---..#*-@@@@@@@@@@@@@@:**.::.+*@@%@@@@*.@@@@+@#@@.-#@@@@@@@@@@@@@
+@@@@@@@@@@.@.:@+@@@@%#.@%-@.@@@@@#@%:#:.%-**:@@@@@@@@@#:*#:%.-#+%@:@@@@@.:%.%@%#@@*@@#@:@@@@@@@@@@@@
+@@@@@@@@@:@..@@#@*@:@#.@=#.**.@@@@@@%+-*=:=#%#@@@@@@@@***-:-:%#%@@@@@@..@=%@@:.@%@@@@*@@.@@@@@@@@@@@
+@@@@@@@@.@..=@%#@@@:*@@@@.#+%%..@@@@@##=+.#@@@@@@@@@@@@@@::%=@@=@@@#+-@@@-#@@@.-@@@@+@@*#.@@@@@@@@@@
+@@@@@@@:@..@@@@=@#.:@@@@@@*-@@@:-.@@@@@*=:@-+#@-@+++*@*-#-:#%@*@@+@@-%=+..@@@@@=%@@@@=@@@@=@@@@@@@@@
+@@@@@@@@.+@+@@%@*.:@@@@@@@=-:@*@=.@=@%@#==@+%@-@%%=-%*@%+@-@@@@%@@.#@-@:%@@*@@@@+#@@@%@%@:-@-@@@@@@@
+@@@@@@@-@@@-@#@*-*@@@@@@:+@-#@:#@%.=@@@@%%#*@-@=%@:+=:*%*@%-@*@%::@@+:@.-@#@@@@@@:-@*%@@@%..@*@@@@@@
+@@@@@-@..*@*@#@@@#@@@#@@@@@%:*+=#@#:+@@*##+-.-%%@@@@%%*@+#.%@@@=.@@%:%+:@@@@@@@@@@..*@@@@*%@:@@@@@@@
+@@@@@@.@@@@@@-#..@@@*@@@@#@@..@.#@@@@@+@-@%:%%%:.@@:@+%-@%@+%*@%@@*.=++%@@=@@@@@@@@@@@:@@@@..@=@@@@@
+@@@@%@..@@@#@@@@@@@#*@@@@@@@@%%@.*@@@@=@@@+==+*@-@=@@@%=+=@@#@@@@@=:@..@@@@#@@@%@@@..*@@+@*@@+#@@@@@
+@@@@:@%%@@#@@#..@@@@@@@%@@@@@..%@=-*%@@*--..-%%@@+@@:%*-..::@@*#+.@@#@@@@@@*@@@@%@@@@@@%@@#@:.@@@@@@
+@@@@%.%@@@#@@+.-@**.#.+@..@@@@#%#%%@+@@%*+@=:.=%%@@@#=.:%**@+@@*@#@%..@@@#..@...=@@@-+=@*@@=..@#@@@@
+@@@@@..@*@.@#@=@=@@@%@..@@@@@@+..#+*%@@@%..@*--*#==*-++@#.-%#@%@@@@@*@@*@.@@:-@@@@@@.=@@=:@%*:@:@@@@
+@@@@@.*@@...@@=@@@@@=@-@@@@%@@.*@%*.@@@-@=##@@@+#:=%*@@@##@@*@@@@.@..@@@@@@@.@@@@@@@=@-@..@-@-@.@@@@
+@@@@@..*@:%.@**@@@@@%@%@@@@@..#@@#-@@%@+..:=@@%*+.:-#@@#:..:@@#@+%@@*.:@@@@@#@@@@%@@..@%+**@*=@.@@@@
+@@@@@.-#@@=%@@:=@@#@@@-@@@.%*@-@@@===#@@@%%%+@*-...=-@%%%%#@@@#:%%%%@#+.+%@@@@@@@@@@..%@*%+%-:@:@@@@
+@@@@@.%@=@@=+*..@@%@@@@@.*+=#@@@@%++*@*@@@*-+@@=:..:*@*.++@@@@*=#+*%@@@*+.**@@@@@@@@*#@@#@@@..@#@@@@
+@@@@:@%%@@%@@+==@@@@@@.:%=#@@:**@+%@%=@@#@%+=%@*...:@@*+#@@%:##%#@@@+-@%@*@-%-@@@@@%#@==@@@@:.@@@@@@
+@@@@*@..@@@*@@@#%@@% .@--@*@#%.%@@@@*+.@@+@@*#@-...--%%*@@@@-%@*@@@@:@+*.@@-%-%.@@@..#@@@@@%@=%@@@@@
+@@@@@@.#%%*=@@#.*@:.*-@@@*+%@@@@@@@@@-@@*%%%+@*:...::+@@@@=@@%**@@@@@@@@#=@:@-*%-.@@@@@@+*@..@.@@@@@
+@@@@@.@-.@%%%@@*+.-@%%@@@@@@@@@%%@%@@*#@@@@@@-@:..:.%:*@@=@+#@*@@@%%%@@@@@@@@@@@-%..@@@##@%@.@@@@@@@
+@@@@@@@.@@@@@.%....................#@@-=@@@@%::%@%@@=.-@@@@-@@@@#:....................@@@%..@.@@@@@@
+@@@@@@:@..@...........::-=*%@@@@@@@@@#@@@-*@%-..:@*:..#@@@%=@@@@@@@@@:@@%*=-::..........-.@-@@@@@@@@
+@@@@@@@%#.@@@@@+@@..@@@=@@@@@*@@@@@@@@@%*@-%@@@@@@@@@@@@@=+*+#@@@@@@@@@@@@@@@@@@%*%%@@%@@-:#%@@@@@@@
+@@@@@@@@@.@@@@%@%@+..@@@@@@@@@@-@@@@@@@#+--#@@+.....-@@@@@@%#@@*@@:@@@+@@@@@@@@%+%@@*@@@:.@:@@@@@@@@
+@@@@@@@@@@.@%@*+@@@+.:@@@@@@@@@.@:%:+@@@%%::%@@@@@@@@@%@+:+@%@@.-.#..*@@-@@@@*@%@@@@+%@..@:@@@@@@@@@
+@@@@@@@@@@@.@+@@*@@@@+@=@@@@@*@@@@@:@@@@#@%+.+%%%@@@@@@@*@@@@@@:@@.@@@*@@@@@.:@=@@*@@@:.@.@@@@@@@@@@
+@@@@@@@@@@@@=+.@@%@@*%@..@@=@@@@@@@+@@@@@@%@@@@**#%#@.@*@@%@@@@@@@@.@@@=@@#%.@#@@@@@@%.@.@@@@@@@@@@@
+@@@@@@@@@@@@#@.-%@@%@@@*@-.@@@@@@@@@@.@@@@@:%%@@*:*+#%@@@@@@@@@*@+@@@@@@@-.*#@@@@@@:@.@*@@@@@@@@@@@@
+@@@@@@@@@@@@@:@.@:@@#@@*@@@-.@@@@@@@@@@@@@#.+@@#%=@@@@@+@@@@@%@+@@@@@@-#.@@@=@@@@%-.@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@.%@@%@@**@@@.@.@@@@@@@@@@@@#*@@@@#%%#=:@@@@*@@@@@@#:-#@@+@-@@@@.*.@.@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@+@#..@@@@@@@@+#@.%.=@@@@@@@@:.-@#@@@%=@@@@@@@@@@.*.%*@@@@@@+@@.@.@#@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@:@*.%*%@%@@@.@@:@@.*+.*@@@@#@=@@.@+.@@@@@:.@.:@%.@@@%@@%%@.@.@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@-@@.@.@#=@@@.@:@@#*@@+.:%@..==@#@@@+..#@%+@#@=*.@-@#@+#.:@%@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@%@=.@.@@%@.@=@@@=@@@@@%@@#=#..@%@@*@@@@#@@#%@:@:-+.@@.@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@+@@*.%#:@@@@@#@@@++@@@..@##@@@#@@=@*@@@@@*.@..@@=@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=@@=.=@.:@@@@@@@#%@##..@@@@+@@@##.#@..@@@.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@:@@@#..:@@+...+:.*%-..:%@=..-@@@#-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=:@@@@@@@@@+:@@@@@@@@+.%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+{Fore.CYAN}╔═══════════════════════════════════════════════════════════════════════════════╗
+{Fore.CYAN}║                                                                               ║
+{Fore.CYAN}║  {Fore.MAGENTA}✦ ShadowGhost - Advanced Ethical Reconnaissance Tool ✦{Fore.CYAN}                 ║
+{Fore.CYAN}║  {Fore.WHITE}Version: 1.0.0{Fore.CYAN}                                                          ║
+{Fore.CYAN}║  {Fore.WHITE}Author: charukamahesh922-collab{Fore.CYAN}                                        ║
+{Fore.CYAN}║  {Fore.WHITE}License: MIT{Fore.CYAN}                                                           ║
+{Fore.CYAN}╚═══════════════════════════════════════════════════════════════════════════════╝
+{Style.RESET_ALL}
+
+{Fore.GREEN}DESCRIPTION:{Style.RESET_ALL}
+    ShadowGhost is an advanced ethical reconnaissance tool for information gathering
+    and vulnerability assessment. It performs comprehensive scans including DNS
+    enumeration, port scanning, technology detection, and vulnerability checking.
+
+{Fore.GREEN}USAGE:{Style.RESET_ALL}
+    {Fore.YELLOW}shadowghost -t <target> [OPTIONS]{Style.RESET_ALL}
+
+{Fore.GREEN}REQUIRED ARGUMENTS:{Style.RESET_ALL}
+    {Fore.YELLOW}-t, --target{Style.RESET_ALL}      Target domain or IP address
+
+{Fore.GREEN}SCAN TYPES:{Style.RESET_ALL}
+    {Fore.YELLOW}--full{Style.RESET_ALL}            Full comprehensive scan (default)
+    {Fore.YELLOW}--quick{Style.RESET_ALL}           Quick scan - skips ports and directories
+    {Fore.YELLOW}--aggressive{Style.RESET_ALL}      Aggressive scan with extra checks
+
+{Fore.GREEN}PERFORMANCE:{Style.RESET_ALL}
+    {Fore.YELLOW}-T, --threads{Style.RESET_ALL}     Number of threads (default: 30)
+    {Fore.YELLOW}--timeout{Style.RESET_ALL}         Connection timeout in seconds (default: 10)
+    {Fore.YELLOW}-v, --verbose{Style.RESET_ALL}     Enable verbose output
+    {Fore.YELLOW}-o, --output{Style.RESET_ALL}      Output file prefix for reports
+
+{Fore.GREEN}SKIP OPTIONS:{Style.RESET_ALL}
+    {Fore.YELLOW}--no-ports{Style.RESET_ALL}        Skip port scanning
+    {Fore.YELLOW}--no-dirs{Style.RESET_ALL}         Skip directory discovery
+    {Fore.YELLOW}--no-update, -nu{Style.RESET_ALL}  Skip auto-update check
+
+{Fore.GREEN}EXTRA FEATURES:{Style.RESET_ALL}
+    {Fore.YELLOW}-e, --email-extract{Style.RESET_ALL}  Extract email addresses from pages
+    {Fore.YELLOW}-u, --url-extract{Style.RESET_ALL}    Extract all URLs/links from pages
+    {Fore.YELLOW}-r, --rate-test{Style.RESET_ALL}      Test rate limiting
+    {Fore.YELLOW}--subnet{Style.RESET_ALL}             Scan subnet (e.g., 192.168.1.0/24)
+
+{Fore.GREEN}EXAMPLES:{Style.RESET_ALL}
+    {Fore.YELLOW}shadowghost -t example.com{Style.RESET_ALL}
+        Full scan on example.com
+
+    {Fore.YELLOW}shadowghost -t example.com --quick{Style.RESET_ALL}
+        Quick scan skipping ports and directories
+
+    {Fore.YELLOW}shadowghost -t example.com --aggressive -e -u -v{Style.RESET_ALL}
+        Aggressive scan with email/URL extraction and verbose output
+
+    {Fore.YELLOW}shadowghost -t example.com -T 50 --timeout 15{Style.RESET_ALL}
+        Scan with 50 threads and 15 second timeout
+
+    {Fore.YELLOW}shadowghost -t example.com -o my_scan{Style.RESET_ALL}
+        Save reports with custom prefix 'my_scan'
+
+    {Fore.YELLOW}shadowghost -t example.com --no-ports --no-dirs{Style.RESET_ALL}
+        Skip port scanning and directory discovery
+
+{Fore.GREEN}OUTPUT REPORTS:{Style.RESET_ALL}
+    Reports are saved in the 'reports/' directory with the following formats:
+    {Fore.YELLOW}*.json{Style.RESET_ALL}      - JSON format for programmatic use
+    {Fore.YELLOW}*.html{Style.RESET_ALL}      - HTML format for browser viewing
+    {Fore.YELLOW}*.md{Style.RESET_ALL}        - Markdown format for documentation
+    {Fore.YELLOW}*.txt{Style.RESET_ALL}       - Plain text format for quick viewing
+
+{Fore.GREEN}AUTO-UPDATE:{Style.RESET_ALL}
+    ShadowGhost automatically checks for updates on GitHub when run.
+    Use {Fore.YELLOW}--no-update{Style.RESET_ALL} or {Fore.YELLOW}-nu{Style.RESET_ALL} to skip this check.
+
+{Fore.GREEN}LEGAL DISCLAIMER:{Style.RESET_ALL}
+    {Fore.RED}⚠ This tool is for educational and authorized testing purposes only.{Style.RESET_ALL}
+    {Fore.RED}⚠ Use only on systems you own or have explicit permission to test.{Style.RESET_ALL}
+    {Fore.RED}⚠ Unauthorized use is illegal and unethical.{Style.RESET_ALL}
+
+{Fore.GREEN}REPORT ISSUES:{Style.RESET_ALL}
+    GitHub: {Fore.CYAN}https://github.com/charukamahesh922-collab/Shadow-Ghost{Style.RESET_ALL}
+
+{Fore.GREEN}SUPPORT:{Style.RESET_ALL}
+    For help, questions, or feature requests, please open an issue on GitHub.
+
+{Fore.CYAN}{'='*70}{Style.RESET_ALL}
+"""
+    print(banner)
+    sys.exit(0)
+
+# ============================================
 # MAIN CLASS
 # ============================================
 
@@ -284,7 +438,10 @@ class ShadowGhost:
             'emails': [],
             'urls': [],
             'links': [],
-            'rate_limit': None
+            'rate_limit': None,
+            'ssl_scan': {},
+            'cloud_services': {},
+            'waf': {}
         }
         
         # Initialize modules
@@ -393,32 +550,41 @@ class ShadowGhost:
         print(f"{Fore.CYAN}[+] 🔍 Starting reconnaissance...\n")
         
         try:
-            # DNS Recon
+            # Phase 1: DNS Recon
             self._phase_dns_recon()
             
-            # Port Scan (skip if no-ports)
+            # Phase 2: Port Scan
             if not self.no_ports:
                 self._phase_port_scan()
             else:
                 print(f"{Fore.YELLOW}[!] Skipping port scan (--no-ports){Style.RESET_ALL}")
             
-            # Web Technologies
+            # Phase 3: Web Technologies
             self._phase_web_tech()
             
-            # Hosting Analysis
+            # Phase 4: Hosting Analysis
             self._phase_hosting()
             
-            # OSINT
+            # Phase 5: OSINT
             self._phase_osint()
             
-            # Vulnerability Scan
+            # Phase 6: Vulnerability Scan
             self._phase_vulnerability()
             
-            # Directory Discovery (skip if no-dirs)
+            # Phase 7: Directory Discovery
             if not self.no_dirs:
                 self._phase_discovery()
             else:
                 print(f"{Fore.YELLOW}[!] Skipping directory discovery (--no-dirs){Style.RESET_ALL}")
+            
+            # Phase 8: SSL/TLS Scan (NEW)
+            self._phase_ssl_scan()
+            
+            # Phase 9: Cloud Service Detection (NEW)
+            self._phase_cloud_scan()
+            
+            # Phase 10: WAF Detection (NEW)
+            self._phase_waf_detect()
             
             # Extra Features
             if self.email_extract:
@@ -436,6 +602,10 @@ class ShadowGhost:
             
             duration = (datetime.now() - self.start_time).total_seconds()
             self.results['scan_duration'] = duration
+            
+            # Display gathered data
+            self._display_results()
+            
             self._generate_reports()
             
             print(f"\n{Fore.GREEN}[+] ✅ Scan completed in {duration:.2f} seconds!")
@@ -447,6 +617,140 @@ class ShadowGhost:
         except Exception as e:
             self.logger.error(f"Scan failed: {str(e)}")
             sys.exit(1)
+    
+    def _display_results(self):
+        """Display all gathered data in a nice format"""
+        print(f"\n{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}📊 SHADOWGHOST RECONNAISSANCE RESULTS{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}\n")
+        
+        # Target Info
+        print(f"{Fore.GREEN}[+] TARGET INFORMATION{Style.RESET_ALL}")
+        print(f"    Target: {self.target}")
+        print(f"    Domain: {self.domain}")
+        print(f"    Scan Type: {self.scan_type.upper()}")
+        print(f"    Duration: {self.results['scan_duration']:.2f} seconds\n")
+        
+        # Executive Summary
+        print(f"{Fore.GREEN}[+] EXECUTIVE SUMMARY{Style.RESET_ALL}")
+        print(f"    {'Vulnerabilities Found:':<30} {Fore.RED}{len(self.results.get('vulnerabilities', []))}{Style.RESET_ALL}")
+        print(f"    {'Open Ports:':<30} {Fore.GREEN}{len(self.results.get('open_ports', {}))}{Style.RESET_ALL}")
+        print(f"    {'Subdomains:':<30} {Fore.GREEN}{len(self.results.get('subdomains', []))}{Style.RESET_ALL}")
+        print(f"    {'Technologies:':<30} {Fore.GREEN}{len(self.results.get('technologies', []))}{Style.RESET_ALL}")
+        print(f"    {'Directories:':<30} {Fore.GREEN}{len(self.results.get('directories', []))}{Style.RESET_ALL}")
+        print(f"    {'Emails Found:':<30} {Fore.GREEN}{len(self.results.get('emails', []))}{Style.RESET_ALL}")
+        print(f"    {'Links Found:':<30} {Fore.GREEN}{len(self.results.get('links', []))}{Style.RESET_ALL}\n")
+        
+        # Open Ports
+        if self.results.get('open_ports'):
+            print(f"{Fore.GREEN}[+] OPEN PORTS{Style.RESET_ALL}")
+            for port, info in self.results['open_ports'].items():
+                print(f"    {Fore.YELLOW}{port}{Style.RESET_ALL}: {info.get('service', 'Unknown')} - {info.get('banner', 'N/A')[:50]}")
+            print()
+        
+        # Vulnerabilities
+        if self.results.get('vulnerabilities'):
+            print(f"{Fore.RED}[!] VULNERABILITIES FOUND{Style.RESET_ALL}")
+            for vuln in self.results['vulnerabilities']:
+                print(f"    {Fore.RED}[{vuln.get('type', 'Unknown')}]{Style.RESET_ALL}")
+                print(f"      URL: {vuln.get('url', 'N/A')}")
+                if vuln.get('payload'):
+                    print(f"      Payload: {vuln.get('payload', 'N/A')}")
+                if vuln.get('evidence'):
+                    print(f"      Evidence: {vuln.get('evidence', 'N/A')}")
+            print()
+        else:
+            print(f"{Fore.GREEN}[+] No vulnerabilities found.{Style.RESET_ALL}\n")
+        
+        # Technologies
+        if self.results.get('technologies'):
+            print(f"{Fore.GREEN}[+] TECHNOLOGIES DETECTED{Style.RESET_ALL}")
+            for tech in self.results['technologies']:
+                if isinstance(tech, dict):
+                    print(f"    {tech.get('name', 'Unknown')}: {tech.get('version', 'Unknown')}")
+                else:
+                    print(f"    {tech}")
+            print()
+        
+        # Hosting Info
+        if self.results.get('hosting_info'):
+            print(f"{Fore.GREEN}[+] HOSTING INFORMATION{Style.RESET_ALL}")
+            hosting = self.results['hosting_info']
+            print(f"    IP: {hosting.get('ip', 'Unknown')}")
+            print(f"    Provider: {hosting.get('hosting_provider', 'Unknown')}")
+            print(f"    CDN: {hosting.get('cdn', 'Unknown')}")
+            print(f"    Server Type: {hosting.get('server_type', 'Unknown')}")
+            print()
+        
+        # Subdomains
+        if self.results.get('subdomains'):
+            print(f"{Fore.GREEN}[+] SUBDOMAINS FOUND{Style.RESET_ALL}")
+            for sub in self.results['subdomains']:
+                print(f"    {sub}")
+            print()
+        
+        # Emails
+        if self.results.get('emails'):
+            print(f"{Fore.GREEN}[+] EMAILS FOUND{Style.RESET_ALL}")
+            for email in self.results['emails']:
+                print(f"    {email}")
+            print()
+        
+        # SSL Scan Results
+        if self.results.get('ssl_scan'):
+            print(f"{Fore.GREEN}[+] 🔒 SSL/TLS SCAN RESULTS{Style.RESET_ALL}")
+            cert = self.results['ssl_scan'].get('certificate', {})
+            if cert and cert.get('subject'):
+                print(f"    Subject: {cert.get('subject', {}).get('commonName', 'Unknown')}")
+                print(f"    Issuer: {cert.get('issuer', {}).get('organizationName', 'Unknown')}")
+                print(f"    Valid From: {cert.get('not_before', 'Unknown')}")
+                print(f"    Valid Until: {cert.get('not_after', 'Unknown')}")
+            
+            vulns = self.results['ssl_scan'].get('vulnerabilities', [])
+            if vulns:
+                print(f"    {Fore.RED}[!] SSL Vulnerabilities found:{Style.RESET_ALL}")
+                for vuln in vulns:
+                    print(f"        - {vuln.get('protocol', 'Unknown')}: {vuln.get('description', '')}")
+            print()
+        
+        # Cloud Services
+        if self.results.get('cloud_services'):
+            print(f"{Fore.GREEN}[+] ☁️  CLOUD SERVICES{Style.RESET_ALL}")
+            cloud = self.results['cloud_services']
+            print(f"    Cloud Provider: {cloud.get('cloud_provider', 'Unknown')}")
+            print(f"    CDN Provider: {cloud.get('cdn_provider', 'Unknown')}")
+            print(f"    DNS Provider: {cloud.get('dns_provider', 'Unknown')}")
+            print(f"    Email Provider: {cloud.get('email_provider', 'Unknown')}")
+            if cloud.get('saas_services'):
+                print(f"    SaaS Services: {', '.join(cloud['saas_services'])}")
+            print()
+        
+        # WAF Detection
+        if self.results.get('waf'):
+            print(f"{Fore.GREEN}[+] 🛡️  WAF DETECTION{Style.RESET_ALL}")
+            waf = self.results['waf']
+            if waf.get('waf_present'):
+                print(f"    {Fore.RED}[!] WAF Detected: {waf.get('waf_provider', 'Unknown')}{Style.RESET_ALL}")
+            else:
+                print(f"    {Fore.GREEN}No WAF detected{Style.RESET_ALL}")
+            print()
+        
+        # Sensitive Files (Aggressive mode)
+        if self.results.get('sensitive_files'):
+            print(f"{Fore.RED}[!] SENSITIVE FILES FOUND{Style.RESET_ALL}")
+            for file_info in self.results['sensitive_files']:
+                print(f"    {file_info.get('file', 'Unknown')}: {file_info.get('url', 'N/A')}")
+            print()
+        
+        # DNS Records
+        if self.results.get('dns_records'):
+            print(f"{Fore.GREEN}[+] DNS RECORDS{Style.RESET_ALL}")
+            for rtype, values in self.results['dns_records'].get('records', {}).items():
+                if values:
+                    print(f"    {rtype}: {', '.join(values[:3])}")
+            print()
+        
+        print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
     
     def _phase_dns_recon(self):
         print(f"{Fore.CYAN}[+] 🌐 Phase 1: DNS Reconnaissance")
@@ -511,6 +815,36 @@ class ShadowGhost:
         except Exception as e:
             self.logger.error(f"Discovery failed: {str(e)}")
     
+    def _phase_ssl_scan(self):
+        """Phase 8: SSL/TLS Security Scan"""
+        print(f"{Fore.CYAN}[+] 🔒 Phase 8: SSL/TLS Security Scan{Style.RESET_ALL}")
+        try:
+            scanner = SSLScanner(self.domain, self.timeout)
+            result = scanner.scan()
+            self.results['ssl_scan'] = result
+        except Exception as e:
+            self.logger.error(f"SSL scan failed: {str(e)}")
+    
+    def _phase_cloud_scan(self):
+        """Phase 9: Cloud Service Detection"""
+        print(f"{Fore.CYAN}[+] ☁️  Phase 9: Cloud Service Detection{Style.RESET_ALL}")
+        try:
+            scanner = CloudScanner(self.target, self.timeout)
+            result = scanner.scan()
+            self.results['cloud_services'] = result
+        except Exception as e:
+            self.logger.error(f"Cloud scan failed: {str(e)}")
+    
+    def _phase_waf_detect(self):
+        """Phase 10: WAF Detection"""
+        print(f"{Fore.CYAN}[+] 🛡️  Phase 10: WAF Detection{Style.RESET_ALL}")
+        try:
+            detector = WAFDetector(self.target, self.timeout)
+            result = detector.detect()
+            self.results['waf'] = result
+        except Exception as e:
+            self.logger.error(f"WAF detection failed: {str(e)}")
+    
     def _extract_emails(self):
         print(f"{Fore.CYAN}[+] 📧 Extracting emails from page...")
         try:
@@ -566,7 +900,7 @@ class ShadowGhost:
         
         self.results['sensitive_files'] = sensitive_found
         
-        # SSL/TLS check
+        # SSL/TLS check (additional)
         print("[*] Checking SSL/TLS...")
         try:
             import ssl
@@ -598,6 +932,10 @@ class ShadowGhost:
         self.report_gen.generate_txt(self.results, txt_file)
 
 def main():
+    # Check for help flag first
+    if '-h' in sys.argv or '--help' in sys.argv:
+        show_help()
+    
     parser = argparse.ArgumentParser(
         description='ShadowGhost - Advanced Ethical Reconnaissance Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
