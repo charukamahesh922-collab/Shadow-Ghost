@@ -13,3 +13,5 @@ if [ -d "shadowghost-env" ]; then
 else
     python3 shadowghost.py "$@"
 fi
+
+chmod +x runner.sh
