@@ -236,6 +236,157 @@ def check_common_vulnerabilities(url):
     return vulnerabilities
 
 # ============================================
+# HELP MENU
+# ============================================
+
+def show_help():
+    """Display the help menu"""
+    banner = f"""
+{Fore.RED}@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*.-%@@@@@@@@@@=.=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#:@@@...-@@%=-.#..=#@@+. .#@@++@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@*@@@@@@@@@@@@@@@@@@@@@@@@:@@:.+@..%@%@@@@*@=%@*@*@@@@#@+.*%..@@.@@@@@@@@@@@@@@@@@@@@@@@@=@@@@@@
+@@@@@@@%:@@@@@@@@@@@@@@@@@@-@:.@.+@@@@@@%%@%@@@%.....@@@%=#@@@@@@@.@..@%@@@@@@@@@@@@@@@@@@.+*@@@@@@@
+@@@@@@@@-+.-@@@@@@@@@@@@:@.:#:@%.=@*@+@@@@*@+@@:+@-@@@*@@@%@@@@@@@:.@@:*.@#@@@@@@@@@@@@@.-%@@@@@@@@@
+@@@@@@@@@#*-::@@@@@@@%@*.@:@@@:.%@.@@@-@=##@@@*=#@@=*@@@%#=*@@@%@.@.@@*@@-:.@.@@@@@@@%::+@@@@@@@@@@@
+@@@@@@@@@@@@*=+:.:=.@:-:=@@@@@@@#.#@*@..@+..=@@@@@@@@@+..-@-.%@@##.@*@*@@@@:::...:..-==%-@@@@@@@@@@@
+@@@@@@@@@@@@*@%#=+#*#--:..:..%.::@.@.+@@@@@+@@@@%@@@@@@@@@@@@#.%.@=:..*....::=--=*@@@@%@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@=@@@@%@@@+*-=.=.::..:+@@@@@@@@=*@@@@@#=#@@@@@@@@::.--:=-::+@+#+@@@@@*@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@:@.@@@*+@@@%#*##+:-.:+-+*@@@@@@@@::@.:.=@+@@@@@==:-.:-=+@@@%@@@@-@@@+-@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@:#.@%@@@@-@@#%@@%=@%::=:+:**@@#@.@@@@@@@@@@@::.#:-::=%%%@@+%@@.@@@+%@*.@.@@@@@@@@@@@@@
+@@@@@@@@@@@-@.%@@@#@+@@.%.%@@@@%@@*---..#*-@@@@@@@@@@@@@@:**.::.+*@@%@@@@*.@@@@+@#@@.-#@@@@@@@@@@@@@
+@@@@@@@@@@.@.:@+@@@@%#.@%-@.@@@@@#@%:#:.%-**:@@@@@@@@@#:*#:%.-#+%@:@@@@@.:%.%@%#@@*@@#@:@@@@@@@@@@@@
+@@@@@@@@@:@..@@#@*@:@#.@=#.**.@@@@@@%+-*=:=#%#@@@@@@@@***-:-:%#%@@@@@@..@=%@@:.@%@@@@*@@.@@@@@@@@@@@
+@@@@@@@@.@..=@%#@@@:*@@@@.#+%%..@@@@@##=+.#@@@@@@@@@@@@@@::%=@@=@@@#+-@@@-#@@@.-@@@@+@@*#.@@@@@@@@@@
+@@@@@@@:@..@@@@=@#.:@@@@@@*-@@@:-.@@@@@*=:@-+#@-@+++*@*-#-:#%@*@@+@@-%=+..@@@@@=%@@@@=@@@@=@@@@@@@@@
+@@@@@@@@.+@+@@%@*.:@@@@@@@=-:@*@=.@=@%@#==@+%@-@%%=-%*@%+@-@@@@%@@.#@-@:%@@*@@@@+#@@@%@%@:-@-@@@@@@@
+@@@@@@@-@@@-@#@*-*@@@@@@:+@-#@:#@%.=@@@@%%#*@-@=%@:+=:*%*@%-@*@%::@@+:@.-@#@@@@@@:-@*%@@@%..@*@@@@@@
+@@@@@-@..*@*@#@@@#@@@#@@@@@%:*+=#@#:+@@*##+-.-%%@@@@%%*@+#.%@@@=.@@%:%+:@@@@@@@@@@..*@@@@*%@:@@@@@@@
+@@@@@@.@@@@@@-#..@@@*@@@@#@@..@.#@@@@@+@-@%:%%%:.@@:@+%-@%@+%*@%@@*.=++%@@=@@@@@@@@@@@:@@@@..@=@@@@@
+@@@@%@..@@@#@@@@@@@#*@@@@@@@@%%@.*@@@@=@@@+==+*@-@=@@@%=+=@@#@@@@@=:@..@@@@#@@@%@@@..*@@+@*@@+#@@@@@
+@@@@:@%%@@#@@#..@@@@@@@%@@@@@..%@=-*%@@*--..-%%@@+@@:%*-..::@@*#+.@@#@@@@@@*@@@@%@@@@@@%@@#@:.@@@@@@
+@@@@%.%@@@#@@+.-@**.#.+@..@@@@#%#%%@+@@%*+@=:.=%%@@@#=.:%**@+@@*@#@%..@@@#..@...=@@@-+=@*@@=..@#@@@@
+@@@@@..@*@.@#@=@=@@@%@..@@@@@@+..#+*%@@@%..@*--*#==*-++@#.-%#@%@@@@@*@@*@.@@:-@@@@@@.=@@=:@%*:@:@@@@
+@@@@@.*@@...@@=@@@@@=@-@@@@%@@.*@%*.@@@-@=##@@@+#:=%*@@@##@@*@@@@.@..@@@@@@@.@@@@@@@=@-@..@-@-@.@@@@
+@@@@@..*@:%.@**@@@@@%@%@@@@@..#@@#-@@%@+..:=@@%*+.:-#@@#:..:@@#@+%@@*.:@@@@@#@@@@%@@..@%+**@*=@.@@@@
+@@@@@.-#@@=%@@:=@@#@@@-@@@.%*@-@@@===#@@@%%%+@*-...=-@%%%%#@@@#:%%%%@#+.+%@@@@@@@@@@..%@*%+%-:@:@@@@
+@@@@@.%@=@@=+*..@@%@@@@@.*+=#@@@@%++*@*@@@*-+@@=:..:*@*.++@@@@*=#+*%@@@*+.**@@@@@@@@*#@@#@@@..@#@@@@
+@@@@:@%%@@%@@+==@@@@@@.:%=#@@:**@+%@%=@@#@%+=%@*...:@@*+#@@%:##%#@@@+-@%@*@-%-@@@@@%#@==@@@@:.@@@@@@
+@@@@*@..@@@*@@@#%@@% .@--@*@#%.%@@@@*+.@@+@@*#@-...--%%*@@@@-%@*@@@@:@+*.@@-%-%.@@@..#@@@@@%@=%@@@@@
+@@@@@@.#%%*=@@#.*@:.*-@@@*+%@@@@@@@@@-@@*%%%+@*:...::+@@@@=@@%**@@@@@@@@#=@:@-*%-.@@@@@@+*@..@.@@@@@
+@@@@@.@-.@%%%@@*+.-@%%@@@@@@@@@%%@%@@*#@@@@@@-@:..:.%:*@@=@+#@*@@@%%%@@@@@@@@@@@-%..@@@##@%@.@@@@@@@
+@@@@@@@.@@@@@.%....................#@@-=@@@@%::%@%@@=.-@@@@-@@@@#:....................@@@%..@.@@@@@@
+@@@@@@:@..@...........::-=*%@@@@@@@@@#@@@-*@%-..:@*:..#@@@%=@@@@@@@@@:@@%*=-::..........-.@-@@@@@@@@
+@@@@@@@%#.@@@@@+@@..@@@=@@@@@*@@@@@@@@@%*@-%@@@@@@@@@@@@@=+*+#@@@@@@@@@@@@@@@@@@%*%%@@%@@-:#%@@@@@@@
+@@@@@@@@@.@@@@%@%@+..@@@@@@@@@@-@@@@@@@#+--#@@+.....-@@@@@@%#@@*@@:@@@+@@@@@@@@%+%@@*@@@:.@:@@@@@@@@
+@@@@@@@@@@.@%@*+@@@+.:@@@@@@@@@.@:%:+@@@%%::%@@@@@@@@@%@+:+@%@@.-.#..*@@-@@@@*@%@@@@+%@..@:@@@@@@@@@
+@@@@@@@@@@@.@+@@*@@@@+@=@@@@@*@@@@@:@@@@#@%+.+%%%@@@@@@@*@@@@@@:@@.@@@*@@@@@.:@=@@*@@@:.@.@@@@@@@@@@
+@@@@@@@@@@@@=+.@@%@@*%@..@@=@@@@@@@+@@@@@@%@@@@**#%#@.@*@@%@@@@@@@@.@@@=@@#%.@#@@@@@@%.@.@@@@@@@@@@@
+@@@@@@@@@@@@#@.-%@@%@@@*@-.@@@@@@@@@@.@@@@@:%%@@*:*+#%@@@@@@@@@*@+@@@@@@@-.*#@@@@@@:@.@*@@@@@@@@@@@@
+@@@@@@@@@@@@@:@.@:@@#@@*@@@-.@@@@@@@@@@@@@#.+@@#%=@@@@@+@@@@@%@+@@@@@@-#.@@@=@@@@%-.@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@.%@@%@@**@@@.@.@@@@@@@@@@@@#*@@@@#%%#=:@@@@*@@@@@@#:-#@@+@-@@@@.*.@.@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@+@#..@@@@@@@@+#@.%.=@@@@@@@@:.-@#@@@%=@@@@@@@@@@.*.%*@@@@@@+@@.@.@#@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@:@*.%*%@%@@@.@@:@@.*+.*@@@@#@=@@.@+.@@@@@:.@.:@%.@@@%@@%%@.@.@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@-@@.@.@#=@@@.@:@@#*@@+.:%@..==@#@@@+..#@%+@#@=*.@-@#@+#.:@%@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@%@=.@.@@%@.@=@@@=@@@@@%@@#=#..@%@@*@@@@#@@#%@:@:-+.@@.@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@+@@*.%#:@@@@@#@@@++@@@..@##@@@#@@=@*@@@@@*.@..@@=@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=@@=.=@.:@@@@@@@#%@##..@@@@+@@@##.#@..@@@.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@:@@@#..:@@+...+:.*%-..:%@=..-@@@#-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=:@@@@@@@@@+:@@@@@@@@+.%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+{Fore.CYAN}╔═══════════════════════════════════════════════════════════════════════════════╗
+{Fore.CYAN}║                                                                               ║
+{Fore.CYAN}║  {Fore.MAGENTA}✦ ShadowGhost - Advanced Ethical Reconnaissance Tool ✦{Fore.CYAN}                 ║
+{Fore.CYAN}║  {Fore.WHITE}Version: 1.0.0{Fore.CYAN}                                                          ║
+{Fore.CYAN}║  {Fore.WHITE}Author: charukamahesh922-collab{Fore.CYAN}                                        ║
+{Fore.CYAN}║  {Fore.WHITE}License: MIT{Fore.CYAN}                                                           ║
+{Fore.CYAN}╚═══════════════════════════════════════════════════════════════════════════════╝
+{Style.RESET_ALL}
+
+{Fore.GREEN}DESCRIPTION:{Style.RESET_ALL}
+    ShadowGhost is an advanced ethical reconnaissance tool for information gathering
+    and vulnerability assessment. It performs comprehensive scans including DNS
+    enumeration, port scanning, technology detection, and vulnerability checking.
+
+{Fore.GREEN}USAGE:{Style.RESET_ALL}
+    {Fore.YELLOW}shadowghost -t <target> [OPTIONS]{Style.RESET_ALL}
+
+{Fore.GREEN}REQUIRED ARGUMENTS:{Style.RESET_ALL}
+    {Fore.YELLOW}-t, --target{Style.RESET_ALL}      Target domain or IP address
+
+{Fore.GREEN}SCAN TYPES:{Style.RESET_ALL}
+    {Fore.YELLOW}--full{Style.RESET_ALL}            Full comprehensive scan (default)
+    {Fore.YELLOW}--quick{Style.RESET_ALL}           Quick scan - skips ports and directories
+    {Fore.YELLOW}--aggressive{Style.RESET_ALL}      Aggressive scan with extra checks
+
+{Fore.GREEN}PERFORMANCE:{Style.RESET_ALL}
+    {Fore.YELLOW}-T, --threads{Style.RESET_ALL}     Number of threads (default: 30)
+    {Fore.YELLOW}--timeout{Style.RESET_ALL}         Connection timeout in seconds (default: 10)
+    {Fore.YELLOW}-v, --verbose{Style.RESET_ALL}     Enable verbose output
+    {Fore.YELLOW}-o, --output{Style.RESET_ALL}      Output file prefix for reports
+
+{Fore.GREEN}SKIP OPTIONS:{Style.RESET_ALL}
+    {Fore.YELLOW}--no-ports{Style.RESET_ALL}        Skip port scanning
+    {Fore.YELLOW}--no-dirs{Style.RESET_ALL}         Skip directory discovery
+    {Fore.YELLOW}--no-update, -nu{Style.RESET_ALL}  Skip auto-update check
+
+{Fore.GREEN}EXTRA FEATURES:{Style.RESET_ALL}
+    {Fore.YELLOW}-e, --email-extract{Style.RESET_ALL}  Extract email addresses from pages
+    {Fore.YELLOW}-u, --url-extract{Style.RESET_ALL}    Extract all URLs/links from pages
+    {Fore.YELLOW}-r, --rate-test{Style.RESET_ALL}      Test rate limiting
+    {Fore.YELLOW}--subnet{Style.RESET_ALL}             Scan subnet (e.g., 192.168.1.0/24)
+
+{Fore.GREEN}EXAMPLES:{Style.RESET_ALL}
+    {Fore.YELLOW}shadowghost -t example.com{Style.RESET_ALL}
+        Full scan on example.com
+
+    {Fore.YELLOW}shadowghost -t example.com --quick{Style.RESET_ALL}
+        Quick scan skipping ports and directories
+
+    {Fore.YELLOW}shadowghost -t example.com --aggressive -e -u -v{Style.RESET_ALL}
+        Aggressive scan with email/URL extraction and verbose output
+
+    {Fore.YELLOW}shadowghost -t example.com -T 50 --timeout 15{Style.RESET_ALL}
+        Scan with 50 threads and 15 second timeout
+
+    {Fore.YELLOW}shadowghost -t example.com -o my_scan{Style.RESET_ALL}
+        Save reports with custom prefix 'my_scan'
+
+    {Fore.YELLOW}shadowghost -t example.com --no-ports --no-dirs{Style.RESET_ALL}
+        Skip port scanning and directory discovery
+
+{Fore.GREEN}OUTPUT REPORTS:{Style.RESET_ALL}
+    Reports are saved in the 'reports/' directory with the following formats:
+    {Fore.YELLOW}*.json{Style.RESET_ALL}      - JSON format for programmatic use
+    {Fore.YELLOW}*.html{Style.RESET_ALL}      - HTML format for browser viewing
+    {Fore.YELLOW}*.md{Style.RESET_ALL}        - Markdown format for documentation
+    {Fore.YELLOW}*.txt{Style.RESET_ALL}       - Plain text format for quick viewing
+
+{Fore.GREEN}AUTO-UPDATE:{Style.RESET_ALL}
+    ShadowGhost automatically checks for updates on GitHub when run.
+    Use {Fore.YELLOW}--no-update{Style.RESET_ALL} or {Fore.YELLOW}-nu{Style.RESET_ALL} to skip this check.
+
+{Fore.GREEN}LEGAL DISCLAIMER:{Style.RESET_ALL}
+    {Fore.RED}⚠ This tool is for educational and authorized testing purposes only.{Style.RESET_ALL}
+    {Fore.RED}⚠ Use only on systems you own or have explicit permission to test.{Style.RESET_ALL}
+    {Fore.RED}⚠ Unauthorized use is illegal and unethical.{Style.RESET_ALL}
+
+{Fore.GREEN}REPORT ISSUES:{Style.RESET_ALL}
+    GitHub: {Fore.CYAN}https://github.com/charukamahesh922-collab/Shadow-Ghost{Style.RESET_ALL}
+
+{Fore.GREEN}SUPPORT:{Style.RESET_ALL}
+    For help, questions, or feature requests, please open an issue on GitHub.
+
+{Fore.CYAN}{'='*70}{Style.RESET_ALL}
+"""
+    print(banner)
+    sys.exit(0)
+
+# ============================================
 # MAIN CLASS
 # ============================================
 
@@ -697,6 +848,10 @@ class ShadowGhost:
         self.report_gen.generate_txt(self.results, txt_file)
 
 def main():
+    # Check for help flag first
+    if '-h' in sys.argv or '--help' in sys.argv:
+        show_help()
+    
     parser = argparse.ArgumentParser(
         description='ShadowGhost - Advanced Ethical Reconnaissance Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
